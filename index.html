@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My 24 Hours</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f766e">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: calm, personal, a little proud — a day planned around solat
+   IDEA: a masjid's jam waktu solat turned into a 24-hour dial
+   PICTURE: big colour-ringed clock, prayer times on the rim, live hand
+   COLOUR and TYPE: ink-teal ground at night / warm paper by day, ten category hues; Sora + Inter
+   LAYOUT: tabs on top, dial left with legend right, hour-by-hour list below; stacks on phone */
+:root{color-scheme:light dark;
+--bg:light-dark(#f6f4ef,#0d1b1e);--card:light-dark(#ffffff,#132629);--ink:light-dark(#14211f,#e9f1ef);
+--mute:light-dark(#5d6a68,#93a7a3);--line:light-dark(#e2ddd2,#21393d);--accent:light-dark(#0f766e,#5eead4)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(20px,4vw,48px) max(5vw,16px);max-width:1240px;margin:0 auto}
+h1{font:600 clamp(30px,5vw,44px)/1.05 Sora,Inter,sans-serif;margin:0 0 6px;text-wrap:balance}
+.sub{color:var(--mute);margin:0 0 20px;max-width:62ch}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.tabs button{font:500 15px Inter,sans-serif;min-height:44px;padding:0 18px;border-radius:22px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.tabs button:focus-visible,.row:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.main{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:clamp(16px,3vw,40px);align-items:center}
+.fig{position:relative;aspect-ratio:1;width:100%;max-width:560px;margin:0 auto}
+.fig>svg{position:absolute;inset:0;width:100%;height:100%}
+.seg{cursor:pointer;transition:opacity .2s}
+.seg.dim{opacity:.28}
+.now{font:600 13px Inter,sans-serif}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px}
+.pick{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:14px;min-height:96px}
+.pick .t{font:600 14px Inter;color:var(--mute);white-space:nowrap}
+.pick .n{font:600 22px/1.2 Sora,Inter,sans-serif;margin:4px 0}
+.pick .c{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--mute)}
+.dot{width:12px;height:12px;border-radius:4px;flex:none;display:inline-block}
+.leg{display:grid;gap:8px}
+.lg{display:grid;grid-template-columns:12px minmax(0,8.5em) minmax(0,1fr) 3.4em;gap:10px;align-items:center;font-size:14px}
+.bar{height:10px;border-radius:5px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;border-radius:5px}
+.h{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+h2{font:600 22px Sora,Inter,sans-serif;margin:36px 0 12px}
+.list{display:grid;gap:6px}
+.row{display:grid;grid-template-columns:8.6em 6px minmax(0,1fr);gap:14px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--card);border:1px solid transparent;cursor:pointer}
+.row.on{border-color:var(--accent)}
+.row .tm{font:600 15px Inter;font-variant-numeric:tabular-nums;white-space:nowrap}
+.row .sw{align-self:stretch;border-radius:3px}
+.row .ds small{display:block;color:var(--mute);font-size:13px}
+.note{color:var(--mute);font-size:13px;margin-top:18px}
+@media(max-width:760px){.main{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:480px){.row{grid-template-columns:5.6em 6px minmax(0,1fr);gap:10px}.row .tm{font-size:13px}.lg{grid-template-columns:12px minmax(0,7.5em) minmax(0,1fr) 3em}}
+@media(prefers-reduced-motion:reduce){.seg{transition:none}}
+</style>
+</head>
+<body>
+<div class="band">
+  <h1>My 24 hours</h1>
+  <p class="sub">Each day built around solat, clinic, workout, MEDEX and family. Tap any part of the clock to see what it is.</p>
+  <div class="tabs" id="tabs" role="tablist"></div>
+  <div class="main">
+    <div class="fig" id="fig"><svg id="dial" role="img" aria-label="24-hour clock of the day"></svg></div>
+    <div class="panel">
+      <div class="pick" id="pick"></div>
+      <div class="leg" id="leg"></div>
+    </div>
+  </div>
+  <h2 id="lt">Hour by hour</h2>
+  <div class="list" id="list"></div>
+  <p class="note">Prayer times on the rim are approximate for Kanowit/Sibu in late November; check e-Solat. Clinic assumed 8 am–5 pm. The dark hand on the ring shows the time now in Sarawak. On-call or tired nights: skip MEDEX and keep fardhu, Ayat al-Kursi, Baqarah 285–286, 3 Qul and Al-Mulk.</p>
+</div>
+<script>
+{
+const C={
+ sleep:['Sleep','#4f5bd5'],ibadah:['Ibadah','#10a37f'],work:['Clinic','#2b8fd6'],travel:['Travel','#8a94a6'],
+ workout:['Workout','#f26b3a'],meals:['Meals & self-care','#e8a33d'],study:['MEDEX','#9b5de5'],
+ family:['Family','#e5508a'],project:['Projects & review','#c9a227'],free:['Rest & free time','#5fb8c2']};
+const t=s=>{const[h,m]=s.split(':').map(Number);return h*60+m};
+const B=(a,b,c,n,d='')=>({s:t(a),e:t(b),c,n,d});
+const wk=(thu,mon)=>[
+ B('0:00','5:15','sleep','Sleep'),
+ B('5:15','6:00','ibadah','Subuh','4 pages · 3 Qul (3x) · Yasin'),
+ ...(mon?[B('6:00','6:30','meals','Breakfast','Oats + soy milk · grab tapau & cooler bag'),
+  B('6:30','7:45','travel','Drive Permai → KK Nanga Tada','69 km · ~1 h 8 min + buffer'),
+  B('7:45','8:00','travel','Arrive · settle in')]
+ :[B('6:00','7:30','meals','Shower · breakfast','Oats + soy milk · pack lunch'),
+  B('7:30','8:00','travel','To clinic')]),
+ B('8:00','12:30','work','Clinic'),
+ B('12:30','13:10','meals','Lunch',mon?'Tapau leftovers from home':'¾ cup rice · eggs · chicken/tuna · sayur'),
+ B('13:10','13:30','ibadah','Zohor','4 pages'),
+ B('13:30','15:30','work','Clinic','Fruit snack'),
+ B('15:30','15:45','ibadah','Asar','4 pages · 3 Qul petang'),
+ B('15:45','17:00','work','Clinic'),
+ B('17:00','17:30','free','Home, short rest'),
+ B('17:30','18:00','workout',thu?'Bodyweight circuit':mon?'Indoor cardio':'Workout','Tue: circuit · Wed: cardio'),
+ B('18:00','18:15','meals','Shower'),
+ B('18:15','18:45','ibadah','Maghrib',thu?'4 pages · Yasin + Ad-Dukhan':'4 pages'),
+ B('18:45','19:10','meals','Dinner','No rice: eggs, sayur, fruit'),
+ B('19:10','19:25','family','Call home'),
+ B('19:25','19:45','ibadah','Isyak','4 pages'),
+ thu?B('19:45','20:45','ibadah','Al-Kahf','Malam Jumaat'):B('19:45','20:45','study','MEDEX','1 hour'),
+ B('20:45','22:00','free','Free time','Dota or anything'),
+ B('22:00','22:30','ibadah','Before-sleep wirid','Ayat al-Kursi · Baqarah 285–286 · 3 Qul · Al-Mulk · As-Sajdah · Al-Kafirun · Al-Waqi\'ah'),
+ B('22:30','24:00','sleep','Sleep')];
+const D={
+ mo:{n:'Mon',d:[1],b:wk(false,true)},
+ tw:{n:'Tue–Wed',d:[2,3],b:wk(false,false)},
+ th:{n:'Thu',d:[4],b:wk(true)},
+ fr:{n:'Fri',d:[5],b:[
+  B('0:00','5:15','sleep','Sleep'),
+  B('5:15','6:00','ibadah','Subuh','As-Sajdah + Al-Insan if alone/imam · 4 pages · 3 Qul (3x) · Yasin'),
+  B('6:00','7:30','meals','Shower · breakfast'),
+  B('7:30','8:00','travel','To clinic'),
+  B('8:00','11:45','work','Clinic'),
+  B('11:45','13:00','ibadah','Solat Jumaat','4 pages'),
+  B('13:00','14:00','meals','Lunch at Sugarbun','Chicken, skin off · plain rice · water'),
+  B('14:00','15:30','work','Clinic'),
+  B('15:30','15:45','ibadah','Asar','4 pages · 3 Qul petang · finish Al-Kahf before Maghrib'),
+  B('15:45','17:00','work','Clinic'),
+  B('17:00','18:30','travel','Drive to Sibu'),
+  B('18:30','19:00','ibadah','Maghrib','4 pages'),
+  B('19:00','19:30','meals','Light dinner'),
+  B('19:30','19:50','ibadah','Isyak','4 pages'),
+  B('19:50','22:00','family','Family time','Rest day'),
+  B('22:00','22:30','ibadah','Before-sleep wirid','Ayat al-Kursi · Baqarah 285–286 · 3 Qul · Al-Mulk · As-Sajdah · Al-Kafirun · Al-Waqi\'ah'),
+  B('22:30','24:00','sleep','Sleep')]},
+ sa:{n:'Sat',d:[6],b:[
+  B('0:00','5:15','sleep','Sleep'),
+  B('5:15','6:15','ibadah','Subuh','4 pages + extra (markaz night) · 3 Qul (3x) · Yasin'),
+  B('6:15','6:30','meals','Get ready'),
+  B('6:30','7:30','workout','Longer workout','With family if possible'),
+  B('7:30','8:15','meals','Breakfast'),
+  B('8:15','12:10','family','Family time'),
+  B('12:10','12:30','ibadah','Zohor','4 pages'),
+  B('12:30','13:30','meals','Home lunch','½ sayur · ¼ protein · ¼ rice'),
+  B('13:30','15:30','project','Jalan Daie / app'),
+  B('15:30','16:00','ibadah','Asar','4 pages + extra · 3 Qul petang'),
+  B('16:00','17:30','free','Rest or nap'),
+  B('17:30','18:00','meals','Light dinner','If no makan at markaz'),
+  B('18:00','21:00','ibadah','Malam markaz','Maghrib to after Isyak · bayan · Hayatus Sahabah · Isyak pages made up after Subuh/Asar'),
+  B('21:00','22:00','free','Free time'),
+  B('22:00','22:30','ibadah','Before-sleep wirid','Ayat al-Kursi · Baqarah 285–286 · 3 Qul · Al-Mulk · As-Sajdah · Al-Kafirun · Al-Waqi\'ah'),
+  B('22:30','24:00','sleep','Sleep')]},
+ su:{n:'Sun',d:[0],b:[
+  B('0:00','5:15','sleep','Sleep'),
+  B('5:15','6:00','ibadah','Subuh','4 pages · 3 Qul (3x) · Yasin'),
+  B('6:00','8:00','family','Breakfast with family'),
+  B('8:00','10:00','study','MEDEX block','2 hours'),
+  B('10:00','12:10','family','Family time'),
+  B('12:10','12:30','ibadah','Zohor','4 pages'),
+  B('12:30','13:30','meals','Lunch'),
+  B('13:30','14:00','free','Rest'),
+  B('14:00','14:30','meals','Meal prep','Chicken · box Monday tapau · cooler bag'),
+  B('14:30','15:30','free','Rest'),
+  B('15:30','16:00','ibadah','Asar','4 pages · 3 Qul petang'),
+  B('16:00','16:15','project','Weekly review','Money check on the 1st Sunday'),
+  B('16:15','18:15','family','Family time'),
+  B('18:15','18:45','ibadah','Maghrib','4 pages'),
+  B('18:45','19:25','meals','Dinner'),
+  B('19:25','19:45','ibadah','Isyak','4 pages'),
+  B('19:45','22:00','family','Family · prep for the week','Pack the car tonight for the Monday morning drive'),
+  B('22:00','22:30','ibadah','Before-sleep wirid','Ayat al-Kursi · Baqarah 285–286 · 3 Qul · Al-Mulk · As-Sajdah · Al-Kafirun · Al-Waqi\'ah'),
+  B('22:30','24:00','sleep','Sleep')]}};
+const PR=[['Subuh','4:50'],['Zohor','12:10'],['Asar','15:30'],['Maghrib','18:15'],['Isyak','19:25']];
+const fmt=m=>{m=m%1440;let h=Math.floor(m/60),mm=m%60,ap=h<12?'am':'pm';h=h%12||12;return h+(mm?':'+String(mm).padStart(2,'0'):'')+' '+ap};
+const dur=m=>{const h=Math.floor(m/60),r=m%60;return (h?h+' h':'')+(h&&r?' ':'')+(r?r+' min':'')};
+const nowK=()=>{const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kuching',hour:'numeric',minute:'numeric',weekday:'short',hourCycle:'h23'}).formatToParts(new Date());const g=k=>p.find(x=>x.type===k).value;return{m:+g('hour')*60+ +g('minute'),d:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(g('weekday'))}};
+let cur='mo',sel=null;
+const N=nowK();for(const k in D)if(D[k].d.includes(N.d))cur=k;
+const $=id=>document.getElementById(id);
+const svg=$('dial');
+const pt=(m,r)=>{const a=m/1440*2*Math.PI-Math.PI/2;return[Math.cos(a)*r,Math.sin(a)*r]};
+const arc=(s,e,r1,r2)=>{const L=e-s>720?1:0,[a,b]=pt(s,r2),[c,d]=pt(e,r2),[f,g]=pt(e,r1),[h,i]=pt(s,r1);
+ return `M${a} ${b}A${r2} ${r2} 0 ${L} 1 ${c} ${d}L${f} ${g}A${r1} ${r1} 0 ${L} 0 ${h} ${i}Z`};
+function draw(){
+ const W=svg.clientWidth||500,S=W/2,small=W<380,R=S*(small?.64:.7),r=S*(small?.41:.45),day=D[cur].b;
+ let o=`<g transform="translate(${S} ${S})">`;
+ o+=`<circle r="${R+S*.04}" fill="var(--card)" stroke="var(--line)"/>`;
+ o+=day.map((b,i)=>`<path class="seg${sel!==null&&sel!==i?' dim':''}" data-i="${i}" d="${arc(b.s,b.e,r,R)}" fill="${C[b.c][1]}" stroke="var(--card)" stroke-width="1.5"><title>${fmt(b.s)}–${fmt(b.e)} ${b.n}</title></path>`).join('');
+ for(let h=0;h<24;h++){const[a,b]=pt(h*60,r-2),[c,d]=pt(h*60,r-(h%3?S*.03:S*.06));o+=`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="var(--mute)" stroke-width="${h%3?1:2}"/>`;
+  if(h%3===0){const[x,y]=pt(h*60,r-S*.13);o+=`<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" fill="var(--mute)" font-size="${small?10:13}" font-weight="600">${h===0?'12am':h===12?'12pm':h%12}</text>`}}
+ PR.forEach(([n,tm])=>{const m=t(tm),nud={Maghrib:-40,Isyak:40}[n]||0,[x,y]=pt(m,R+S*.04),[lx,ly]=pt(m+nud,R+S*.09),an=lx<-S*.2?'end':lx>S*.2?'start':'middle';o+=`<circle cx="${x}" cy="${y}" r="${S*.022}" fill="var(--accent)" stroke="var(--card)" stroke-width="2"/>`;
+  o+=`<text x="${lx}" y="${ly}" text-anchor="${an}" dominant-baseline="central" fill="var(--ink)" font-size="${small?10:12}" font-weight="600">${n}</text>`});
+ const n=nowK(),show=D[cur].d.includes(n.d);
+ if(show){const[a,b]=pt(n.m,r-S*.08),[x,y]=pt(n.m,R+S*.03);o+=`<line x1="${a}" y1="${b}" x2="${x}" y2="${y}" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/><circle cx="${a}" cy="${b}" r="${S*.025}" fill="var(--ink)"/>`}
+ const tot=day.filter(b=>b.c==='ibadah').reduce((a,b)=>a+b.e-b.s,0);
+ o+=`<text y="${-S*.06}" text-anchor="middle" fill="var(--mute)" font-size="${small?11:14}">${show?'Now '+fmt(n.m):D[cur].n}</text>`;
+ o+=`<text y="${S*.08}" text-anchor="middle" fill="var(--ink)" font-family="Sora,Inter" font-weight="600" font-size="${small?20:28}">${dur(tot)}</text>`;
+ o+=`<text y="${S*.2}" text-anchor="middle" fill="${C.ibadah[1]}" font-size="${small?11:13}" font-weight="600">of ibadah</text></g>`;
+ svg.setAttribute('viewBox',`0 0 ${W} ${W}`);svg.innerHTML=o;
+}
+function panel(){
+ const day=D[cur].b,n=nowK();
+ let i=sel;if(i===null&&D[cur].d.includes(n.d))i=day.findIndex(b=>n.m>=b.s&&n.m<b.e);
+ const b=day[i];
+ $('pick').innerHTML=b?`<div class="t">${sel===null?'Right now · ':''}${fmt(b.s)} – ${fmt(b.e)} · ${dur(b.e-b.s)}</div><div class="n">${b.n}</div>${b.d?`<div style="font-size:14px;margin-bottom:6px">${b.d}</div>`:''}<span class="c"><span class="dot" style="background:${C[b.c][1]}"></span>${C[b.c][0]}</span>`
+  :`<div class="t">${D[cur].n}</div><div class="n">Tap the clock</div><span class="c">See what each block is</span>`;
+ const tot={};day.forEach(b=>tot[b.c]=(tot[b.c]||0)+b.e-b.s);
+ const ks=Object.keys(tot).sort((a,b)=>tot[b]-tot[a]),mx=tot[ks[0]];
+ $('leg').innerHTML=ks.map(k=>`<div class="lg"><span class="dot" style="background:${C[k][1]}"></span><span>${C[k][0]}</span><span class="bar"><i style="width:${tot[k]/mx*100}%;background:${C[k][1]}"></i></span><span class="h">${(tot[k]/60).toFixed(1).replace('.0','')} h</span></div>`).join('');
+ const L=day.filter(b=>!(b.c==='sleep'&&b.s===0));
+ $('lt').textContent='Hour by hour · '+D[cur].n;
+ $('list').innerHTML=L.map(b=>{const k=day.indexOf(b),e=b.c==='sleep'&&b.e===1440?1440+day[0].e:b.e;return `<div class="row${k===i?' on':''}" tabindex="0" data-i="${k}"><span class="tm">${fmt(b.s)} – ${fmt(e)}</span><span class="sw" style="background:${C[b.c][1]}"></span><span class="ds">${b.n}${b.d?`<small>${b.d}</small>`:''}</span></div>`}).join('');
+}
+function tabs(){$('tabs').innerHTML=Object.keys(D).map(k=>`<button role="tab" data-k="${k}" aria-selected="${k===cur}">${D[k].n}</button>`).join('')}
+function all(){tabs();draw();panel()}
+$('tabs').addEventListener('click',e=>{const k=e.target.closest('button')?.dataset.k;if(k){cur=k;sel=null;all()}});
+svg.addEventListener('click',e=>{const p=e.target.closest('.seg');if(!p){sel=null}else{const i=+p.dataset.i;sel=sel===i?null:i}draw();panel()});
+const pickRow=e=>{const r=e.target.closest('.row');if(!r)return;const i=+r.dataset.i;sel=sel===i?null:i;draw();panel();$('fig').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'})};
+$('list').addEventListener('click',pickRow);
+$('list').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pickRow(e)}});
+const ro=new ResizeObserver(draw);ro.observe(svg);
+setInterval(()=>{draw();if(sel===null)panel()},60000);
+all();
+try{if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
+}
+</script>
+</body>
+</html>
