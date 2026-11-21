@@ -1,4 +1,5 @@
 plugins { id 'com.android.application' }
+def runNum = (System.getenv('GITHUB_RUN_NUMBER') ?: '1') as Integer
 android {
     namespace 'com.abd2lahmantahir.my24hours'
     compileSdk 34
@@ -6,8 +7,8 @@ android {
         applicationId 'com.abd2lahmantahir.my24hours'
         minSdk 24
         targetSdk 34
-        versionCode (System.getenv('GITHUB_RUN_NUMBER') ?: '1').toInteger()
-        versionName "1.0." + (System.getenv('GITHUB_RUN_NUMBER') ?: '1')
+        versionCode runNum
+        versionName "1.0.${runNum}"
     }
     buildTypes { release { minifyEnabled false; signingConfig signingConfigs.debug } }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
